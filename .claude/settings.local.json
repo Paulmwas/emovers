@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(xargs grep *)",
+      "Bash(xargs cat *)",
+      "Bash(head -10 /c/Users/PC/Downloads/emovers-frontend/emovers/src/app/jobs/[id]/page.tsx)"
+    ]
+  }
+}
