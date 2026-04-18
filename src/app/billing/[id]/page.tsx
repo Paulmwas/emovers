@@ -113,7 +113,7 @@ export default function InvoiceDetailPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Due Date</p>
-                <p className="text-sm text-gray-700">{formatDate(invoice.due_date)}</p>
+                <p className="text-sm text-gray-700">{formatDate(invoice.due_date ?? undefined)}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Distance</p>
