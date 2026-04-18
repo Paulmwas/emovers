@@ -393,7 +393,7 @@ export default function JobDetailPage() {
     ? Math.round((attendance.filter(a => a.status === 'confirmed').length / attendance.length) * 100)
     : 0
 
-  const isSupervisor = job?.assignments.some(a => a.staff === user?.id && a.role === 'supervisor')
+  const isSupervisor = job?.assignments.some(a => a.staff.id === user?.id && a.role === 'supervisor')
 
   const TABS = [
     { key: 'overview', label: 'Overview', icon: 'fa-info-circle' },
@@ -578,7 +578,7 @@ export default function JobDetailPage() {
                     <Badge status={a.role} label={a.role_display} />
                   </div>
                   {(() => {
-                    const att = attendance.find(x => x.staff === a.staff)
+                    const att = attendance.find(x => x.staff === a.staff.id)
                     if (!att) return <div style={{ marginTop: '0.5rem' }}><Badge status="pending" label="Pending" /></div>
                     return <div style={{ marginTop: '0.5rem' }}><Badge status={att.status} label={att.status === 'confirmed' ? 'Present' : 'Absent'} /></div>
                   })()}
