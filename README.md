@@ -51,9 +51,31 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000)
 
-### 4. Login
-- **Admin**: admin@emovers.co.ke / Admin1234!
-- **Staff**: staff01@emovers.co.ke / Staff1234!
+### 4. Seed the backend database
+Run this from the Django backend project before logging in:
+```bash
+python manage.py seed_data
+# or wipe everything first:
+python manage.py seed_data --flush
+```
+
+### 5. Login credentials
+
+#### Admin
+| Email | Password |
+|-------|----------|
+| admin@emovers.co.ke | Admin1234! |
+
+#### Staff (15 accounts)
+| Email | Password |
+|-------|----------|
+| staff01@emovers.co.ke | Staff1234! |
+| staff02@emovers.co.ke | Staff1234! |
+| staff03@emovers.co.ke | Staff1234! |
+| ... | Staff1234! |
+| staff15@emovers.co.ke | Staff1234! |
+
+> All staff accounts share the same password: `Staff1234!`
 
 ## Project Structure
 ```
