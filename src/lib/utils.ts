@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(dateStr: string | undefined, fmt = "dd MMM yyyy") {
+export function formatDate(dateStr: string | null | undefined, fmt = "dd MMM yyyy") {
   if (!dateStr) return "—";
   try {
     return format(parseISO(dateStr), fmt);
