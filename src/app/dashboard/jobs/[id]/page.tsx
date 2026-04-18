@@ -136,8 +136,8 @@ function ReviewFormModal({ open, onClose, job, onSuccess }: { open: boolean; onC
   useEffect(() => {
     const init: typeof reviews = {}
     movers.forEach(m => {
-      init[m.staff] = {}
-      CATS.forEach(c => { init[m.staff][c] = { rating: 0, comment: '' } })
+      init[m.staff.id] = {}
+      CATS.forEach(c => { init[m.staff.id][c] = { rating: 0, comment: '' } })
     })
     setReviews(init)
   }, [open])
@@ -179,7 +179,7 @@ function ReviewFormModal({ open, onClose, job, onSuccess }: { open: boolean; onC
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {movers.map(m => (
-            <div key={m.staff} style={{ borderBottom: '1px solid var(--color-gray-mid)', paddingBottom: '1.5rem' }}>
+            <div key={m.staff.id} style={{ borderBottom: '1px solid var(--color-gray-mid)', paddingBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
                   {m.staff_name?.[0]}
@@ -190,13 +190,13 @@ function ReviewFormModal({ open, onClose, job, onSuccess }: { open: boolean; onC
                 {CATS.map(cat => (
                   <div key={cat}>
                     <label className="form-label">{cat.replace(/_/g, ' ')}</label>
-                    <StarPicker value={reviews[m.staff]?.[cat]?.rating || 0} onChange={v => setRating(m.staff, cat, v)} />
+                    <StarPicker value={reviews[m.staff.id]?.[cat]?.rating || 0} onChange={v => setRating(m.staff.id, cat, v)} />
                     <input
                       className="form-input"
                       style={{ marginTop: '0.375rem' }}
                       placeholder="Optional comment"
-                      value={reviews[m.staff]?.[cat]?.comment || ''}
-                      onChange={e => setComment(m.staff, cat, e.target.value)}
+                      value={reviews[m.staff.id]?.[cat]?.comment || ''}
+                      onChange={e => setComment(m.staff.id, cat, e.target.value)}
                     />
                   </div>
                 ))}

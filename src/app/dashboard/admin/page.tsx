@@ -179,7 +179,7 @@ export default function AdminDashboard() {
     if (!isAdmin) return
     setLoading(true)
     Promise.all([
-      reportService.dashboard(30),
+      reportService.dashboard({ days: 30 }),
       jobService.list({ page_size: 5, ordering: '-created_at' }),
       reportService.staffPerformance(),
     ]).then(([dash, jobs, perf]) => {

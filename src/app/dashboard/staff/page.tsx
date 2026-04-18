@@ -148,7 +148,7 @@ export default function StaffDashboard() {
               ) : openJobs.map(job => {
                 const applied = appliedIds.has(job.id)
                 const deadline = job.application_deadline ? new Date(job.application_deadline) < new Date() : false
-                const full = job.max_applicants != null && job.assigned_staff_count >= job.max_applicants
+                const full = job.max_applicants != null && (job.assigned_staff_count ?? 0) >= job.max_applicants
 
                 return (
                   <div key={job.id} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-gray-mid)' }}>

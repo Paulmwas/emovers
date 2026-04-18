@@ -103,7 +103,7 @@ export default function InvoiceDetailPage() {
     setPdfLoading(true)
     try {
       const html2canvas = (await import('html2canvas')).default
-      const jsPDF = (await import('jspdf')).jsPDF
+      const jsPDF = (await import('jspdf')).default
       const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
