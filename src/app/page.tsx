@@ -114,10 +114,7 @@ export default function LandingPage() {
         <div className="container-wide section-pad" style={{ position: 'relative', zIndex: 1 }}>
           <div className="hero-grid-main" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center' }}>
             <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,184,0,0.15)', border: '1px solid rgba(255,184,0,0.3)', borderRadius: '9999px', padding: '0.375rem 1rem', marginBottom: '1.5rem' }}>
-                <i className="fa-solid fa-star" style={{ color: 'var(--color-yellow)', fontSize: '0.75rem' }} />
-                <span style={{ color: 'var(--color-yellow)', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Trusted Since 2009</span>
-              </div>
+              
               <h1 className="display-xl animate-fadeUp" style={{ color: 'white', lineHeight: 0.95, marginBottom: '0.5rem' }}>
                 Moving &amp;
               </h1>
