@@ -4,62 +4,11 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
-import { jobService, attendanceService, notificationService } from '@/lib/services'
+import { jobService, notificationService } from '@/lib/services'
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Badge } from '@/components/ui/Badge'
 import { PageLoader } from '@/components/ui/Spinner'
-import { Modal } from '@/components/ui/Modal'
 import type { Job, JobApplication, Notification } from '@/types'
-
-function AttendanceModal({ jobId, open, onClose, onSuccess }: { jobId: number; open: boolean; onClose: () => void; onSuccess: () => void }) {
-  const toast = useToast()
-  const [pin, setPin] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [pinError, setPinError] = useState('')
-
-  const handleConfirm = async () => {
-    if (pin.length !== 6) { setPinError('PIN must be 6 digits.'); return }
-    setLoading(true); setPinError('')
-    try {
-      await attendanceService.confirm(jobId, pin)
-      toast.success('Attendance Confirmed', 'You are marked as present for this job.')
-      onSuccess(); onClose()
-    } catch (err: any) {
-      setPinError(err.response?.data?.error || 'Incorrect PIN. Try again.')
-    } finally { setLoading(false) }
-  }
-
-  return (
-    <Modal open={open} onClose={onClose} title="Confirm Attendance" size="sm"
-      footer={<>
-        <button className="btn btn-ghost" onClick={onClose} disabled={loading}>Cancel</button>
-        <button className="btn btn-primary" onClick={handleConfirm} disabled={loading || pin.length !== 6}>
-          {loading && <span className="spinner spinner-sm" />}Confirm
-        </button>
-      </>}
-    >
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.5rem', color: 'var(--color-success)' }}>
-          <i className="fa-solid fa-circle-check" />
-        </div>
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-          Enter the 6-digit PIN shared by your Team Lead to confirm your attendance.
-        </p>
-        <input
-          className="form-input"
-          maxLength={6}
-          value={pin}
-          onChange={e => { setPin(e.target.value.replace(/\D/g, '')); setPinError('') }}
-          placeholder="000000"
-          style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.5rem', fontFamily: 'var(--font-display)', fontWeight: 800 }}
-          autoFocus
-          disabled={loading}
-        />
-        {pinError && <div className="field-error" style={{ marginTop: '0.5rem', textAlign: 'center' }}>{pinError}</div>}
-      </div>
-    </Modal>
-  )
-}
 
 export default function StaffDashboard() {
   const { user } = useAuth()
@@ -69,7 +18,6 @@ export default function StaffDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [applyingId, setApplyingId] = useState<number | null>(null)
-  const [attendanceJobId, setAttendanceJobId] = useState<number | null>(null)
   const [refresh, setRefresh] = useState(0)
 
   useEffect(() => {
@@ -215,13 +163,9 @@ export default function StaffDashboard() {
                       </Link>
                       <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>{app.job_scheduled_date}</div>
                     </div>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => setAttendanceJobId(app.job)}
-                    >
-                      <i className="fa-solid fa-key" />
-                      Confirm Attendance
-                    </button>
+                    <Link href={`/dashboard/jobs/${app.job}`} className="btn btn-outline btn-sm">
+                      <i className="fa-solid fa-arrow-right" />View Job
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -257,14 +201,6 @@ export default function StaffDashboard() {
         </div>
       </div>
 
-      {attendanceJobId && (
-        <AttendanceModal
-          jobId={attendanceJobId}
-          open
-          onClose={() => setAttendanceJobId(null)}
-          onSuccess={() => setRefresh(r => r + 1)}
-        />
-      )}
     </div>
   )
 }
