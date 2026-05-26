@@ -159,7 +159,7 @@ export const InvoicePDF = forwardRef<HTMLDivElement, InvoicePDFProps>(
 
         {/* Footer */}
         <div style={{ marginTop: '2.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-gray-mid)', fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-          This is a simulated payment environment. E-Movers Management System.
+          This is a simulated payment environment. Smart-Movers Management System.
         </div>
       </div>
     )
