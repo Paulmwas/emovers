@@ -57,7 +57,7 @@ export function Sidebar({ open = true, onClose, unreadCount = 0 }: SidebarProps)
         {/* Logo */}
         <div style={{ padding: '1.5rem 1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.5rem', color: 'white', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
-            <span style={{ color: 'var(--color-orange)' }}>E-</span>Movers
+            <span style={{ color: 'var(--color-orange)' }}>Smart</span>Movers
           </div>
           <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.125rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             Management System
