@@ -62,7 +62,7 @@ export default function ReviewsPage() {
     if (job) {
       const movers = job.assignments?.filter(a => a.role === "mover") || [];
       setReviewItems(movers.map(m => ({
-        reviewee_id: String(m.staff.id),
+        reviewee_id: String(m.staff),
         category: "overall",
         rating: 5,
         comment: "",
@@ -199,15 +199,15 @@ export default function ReviewsPage() {
           )}
 
           {reviewItems.map((item, idx) => {
-            const mover = selectedJob?.assignments?.find(a => a.staff.id === parseInt(item.reviewee_id));
+            const mover = selectedJob?.assignments?.find(a => a.staff === parseInt(item.reviewee_id));
             return (
               <div key={idx} className="bg-gray-50 rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
                   {mover && (
                     <>
-                      <Avatar name={`${mover.staff.first_name} ${mover.staff.last_name}`} size="sm" />
+                      <Avatar name={mover.staff_name || ''} size="sm" />
                       <p className="text-sm font-semibold text-gray-900">
-                        {mover.staff.first_name} {mover.staff.last_name}
+                        {mover.staff_name}
                       </p>
                     </>
                   )}

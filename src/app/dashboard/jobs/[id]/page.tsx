@@ -119,8 +119,8 @@ function ReviewFormModal({ open, onClose, job, onSuccess }: { open: boolean; onC
   useEffect(() => {
     const init: typeof reviews = {}
     movers.forEach(m => {
-      init[m.staff.id] = {}
-      CATS.forEach(c => { init[m.staff.id][c] = { rating: 0, comment: '' } })
+      init[m.staff] = {}
+      CATS.forEach(c => { init[m.staff][c] = { rating: 0, comment: '' } })
     })
     setReviews(init)
   }, [open])
@@ -162,7 +162,7 @@ function ReviewFormModal({ open, onClose, job, onSuccess }: { open: boolean; onC
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {movers.map(m => (
-            <div key={m.staff.id} style={{ borderBottom: '1px solid var(--color-gray-mid)', paddingBottom: '1.5rem' }}>
+            <div key={m.staff} style={{ borderBottom: '1px solid var(--color-gray-mid)', paddingBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
                   {m.staff_name?.[0]}
@@ -173,13 +173,13 @@ function ReviewFormModal({ open, onClose, job, onSuccess }: { open: boolean; onC
                 {CATS.map(cat => (
                   <div key={cat}>
                     <label className="form-label">{cat.replace(/_/g, ' ')}</label>
-                    <StarPicker value={reviews[m.staff.id]?.[cat]?.rating || 0} onChange={v => setRating(m.staff.id, cat, v)} />
+                    <StarPicker value={reviews[m.staff]?.[cat]?.rating || 0} onChange={v => setRating(m.staff, cat, v)} />
                     <input
                       className="form-input"
                       style={{ marginTop: '0.375rem' }}
                       placeholder="Optional comment"
-                      value={reviews[m.staff.id]?.[cat]?.comment || ''}
-                      onChange={e => setComment(m.staff.id, cat, e.target.value)}
+                      value={reviews[m.staff]?.[cat]?.comment || ''}
+                      onChange={e => setComment(m.staff, cat, e.target.value)}
                     />
                   </div>
                 ))}
@@ -390,7 +390,7 @@ export default function JobDetailPage() {
 
   const fmt = (v: string | number) => `KES ${parseFloat(String(v)).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
 
-  const isSupervisor = job?.assignments.some(a => a.staff.id === user?.id && a.role === 'supervisor')
+  const isSupervisor = job?.assignments.some(a => a.staff === user?.id && a.role === 'supervisor')
 
   const TABS = [
     { key: 'overview', label: 'Overview', icon: 'fa-info-circle' },
@@ -476,7 +476,7 @@ export default function JobDetailPage() {
           </div>
           <div className="card card-body">
             <div className="card-title" style={{ marginBottom: '1rem' }}>Assignment Summary</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                 <span style={{ color: 'var(--color-text-muted)' }}>Staff Assigned</span>
                 <span style={{ fontWeight: 700, color: 'var(--color-navy)' }}>{job.assigned_staff_count} / {job.requested_staff_count}</span>
@@ -486,6 +486,36 @@ export default function JobDetailPage() {
                 <span style={{ fontWeight: 700, color: 'var(--color-navy)' }}>{job.assigned_truck_count} / {job.requested_truck_count}</span>
               </div>
             </div>
+
+            {/* Assigned truck details */}
+            {job.job_trucks && job.job_trucks.length > 0 && (
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Trucks</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {job.job_trucks.map(t => (
+                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--color-gray-light)', border: '1px solid var(--color-gray-mid)' }}>
+                      <i className="fa-solid fa-truck" style={{ color: 'var(--color-navy)', fontSize: '0.875rem', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, color: 'var(--color-navy)', fontSize: '0.875rem' }}>
+                          {t.plate_number || `Truck #${t.truck}`}
+                        </div>
+                        <div style={{ fontSize: '0.775rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>
+                          {[t.make, t.model].filter(Boolean).join(' ')}
+                          {t.truck_type ? ` · ${t.truck_type}` : ''}
+                          {t.capacity_tons ? ` · ${t.capacity_tons}t` : ''}
+                        </div>
+                      </div>
+                      {t.allocation_method && (
+                        <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '999px', background: t.allocation_method === 'auto' ? 'rgba(59,130,246,0.1)' : 'rgba(34,197,94,0.1)', color: t.allocation_method === 'auto' ? 'var(--color-info)' : 'var(--color-success)', fontWeight: 700, flexShrink: 0 }}>
+                          {t.allocation_method_display || t.allocation_method}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {job.notes && (
               <div style={{ marginBottom: '1rem' }}>
                 <div className="form-label">Notes</div>
@@ -569,17 +599,15 @@ export default function JobDetailPage() {
       {/* ── TEAM TAB ── */}
       {tab === 'team' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.625rem', alignItems: 'center', marginBottom: '1rem' }}>
             {isAdmin && ['assigned', 'in_progress'].includes(job.status) && job.assignments.some(a => a.role === 'mover') && (
               <button className="btn btn-outline btn-sm" onClick={() => setShowChangeSupervisor(true)}>
                 <i className="fa-solid fa-crown" />Change Team Lead
               </button>
             )}
-            <div style={{ marginLeft: 'auto' }}>
-              <button className="btn btn-outline btn-sm" onClick={handleDownloadPdf}>
-                <i className="fa-solid fa-file-pdf" />Download Team PDF
-              </button>
-            </div>
+            <button className="btn btn-outline btn-sm" onClick={handleDownloadPdf}>
+              <i className="fa-solid fa-file-pdf" />Download Team PDF
+            </button>
           </div>
           {job.assignments.length === 0 ? (
             <EmptyState icon="fa-users" title="No Team Assigned" />
@@ -595,7 +623,7 @@ export default function JobDetailPage() {
                     {a.role === 'supervisor' && <i className="fa-solid fa-crown" style={{ color: 'var(--color-yellow)', fontSize: '0.75rem' }} />}
                     <Badge status={a.role} label={a.role === 'supervisor' ? 'Team Lead' : (a.role_display || a.role)} />
                   </div>
-                  {attendance.find(x => x.staff === a.staff.id) && (
+                  {attendance.find(x => x.staff === a.staff) && (
                     <div style={{ marginTop: '0.5rem' }}><Badge status="absent" label="Absent" /></div>
                   )}
                 </div>
@@ -607,19 +635,43 @@ export default function JobDetailPage() {
           {job.job_trucks && job.job_trucks.length > 0 && (
             <div style={{ marginTop: '1.5rem' }}>
               <div className="card-title" style={{ marginBottom: '0.75rem' }}>Assigned Trucks</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
                 {job.job_trucks.map(t => (
-                  <div key={t.id} className="card" style={{ padding: '1rem 1.25rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                      <div style={{ fontWeight: 700, color: 'var(--color-navy)', fontSize: '0.9rem' }}>{t.plate_number || `Truck #${t.truck}`}</div>
+                  <div key={t.id} className="card" style={{ padding: '1.25rem' }}>
+                    {/* Header row: plate + allocation badge */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <i className="fa-solid fa-truck" style={{ color: 'var(--color-navy)', fontSize: '1rem' }} />
+                        <span style={{ fontWeight: 800, color: 'var(--color-navy)', fontSize: '1rem', fontFamily: 'var(--font-display)', letterSpacing: '0.02em' }}>
+                          {t.plate_number || `Truck #${t.truck}`}
+                        </span>
+                      </div>
                       {t.allocation_method && (
                         <span style={{ fontSize: '0.7rem', padding: '0.125rem 0.5rem', borderRadius: '999px', background: t.allocation_method === 'auto' ? 'rgba(59,130,246,0.1)' : 'rgba(34,197,94,0.1)', color: t.allocation_method === 'auto' ? 'var(--color-info)' : 'var(--color-success)', fontWeight: 600 }}>
                           {t.allocation_method_display || t.allocation_method}
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                      {t.make} {t.model} · {t.truck_type} · {t.capacity_tons}t
+                    {/* Detail rows */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                      {(t.make || t.model) && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                          <span style={{ color: 'var(--color-text-muted)' }}>Make / Model</span>
+                          <span style={{ fontWeight: 600, color: 'var(--color-navy)' }}>{[t.make, t.model].filter(Boolean).join(' ')}</span>
+                        </div>
+                      )}
+                      {t.truck_type && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                          <span style={{ color: 'var(--color-text-muted)' }}>Type</span>
+                          <span style={{ fontWeight: 600, color: 'var(--color-navy)' }}>{t.truck_type}</span>
+                        </div>
+                      )}
+                      {t.capacity_tons && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                          <span style={{ color: 'var(--color-text-muted)' }}>Capacity</span>
+                          <span style={{ fontWeight: 600, color: 'var(--color-navy)' }}>{t.capacity_tons} tons</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -628,31 +680,74 @@ export default function JobDetailPage() {
           )}
 
           {/* Change supervisor modal */}
-          {showChangeSupervisor && (
-            <Modal open={showChangeSupervisor} onClose={() => { setShowChangeSupervisor(false); setChangeSupervisorStaffId(null) }} title="Change Team Lead" size="sm"
-              footer={<>
-                <button className="btn btn-ghost" onClick={() => { setShowChangeSupervisor(false); setChangeSupervisorStaffId(null) }} disabled={changeSupervisorLoading}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleChangeSupervisor} disabled={changeSupervisorLoading || !changeSupervisorStaffId}>
-                  {changeSupervisorLoading && <span className="spinner spinner-sm" />}Confirm
-                </button>
-              </>}
-            >
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-                Select a mover to promote to Team Lead. The current supervisor will become a mover.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {job.assignments.filter(a => a.role === 'mover').map(a => (
-                  <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: `1.5px solid ${changeSupervisorStaffId === a.staff.id ? 'var(--color-orange)' : 'var(--color-gray-mid)'}`, cursor: 'pointer', background: changeSupervisorStaffId === a.staff.id ? 'rgba(232,69,10,0.04)' : 'white' }}>
-                    <input type="radio" name="new-supervisor" checked={changeSupervisorStaffId === a.staff.id} onChange={() => setChangeSupervisorStaffId(a.staff.id)} style={{ accentColor: 'var(--color-orange)' }} />
-                    <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>
-                      {a.staff_name?.[0]}
+          {showChangeSupervisor && (() => {
+            const currentSupervisor = job.assignments.find(a => a.role === 'supervisor')
+            const movers = job.assignments.filter(a => a.role === 'mover')
+            return (
+              <Modal
+                open={showChangeSupervisor}
+                onClose={() => { setShowChangeSupervisor(false); setChangeSupervisorStaffId(null) }}
+                title="Change Team Lead"
+                size="sm"
+                footer={<>
+                  <button className="btn btn-ghost" onClick={() => { setShowChangeSupervisor(false); setChangeSupervisorStaffId(null) }} disabled={changeSupervisorLoading}>
+                    Cancel
+                  </button>
+                  <button className="btn btn-primary" onClick={handleChangeSupervisor} disabled={changeSupervisorLoading || !changeSupervisorStaffId}>
+                    {changeSupervisorLoading ? <span className="spinner spinner-sm" /> : <i className="fa-solid fa-crown" />}
+                    Promote to Team Lead
+                  </button>
+                </>}
+              >
+                {/* Current team lead */}
+                {currentSupervisor && (
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                      Current Team Lead
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-navy)' }}>{a.staff_name}</span>
-                  </label>
-                ))}
-              </div>
-            </Modal>
-          )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'rgba(245,158,11,0.06)', border: '1.5px solid rgba(245,158,11,0.3)' }}>
+                      <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '50%', background: 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.8rem', flexShrink: 0 }}>
+                        {currentSupervisor.staff_name?.[0]}
+                      </div>
+                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-navy)', flex: 1 }}>{currentSupervisor.staff_name}</span>
+                      <i className="fa-solid fa-crown" style={{ color: 'var(--color-yellow)', fontSize: '0.875rem' }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Mover list */}
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  Promote a Mover
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {movers.map(a => {
+                    const selected = changeSupervisorStaffId === a.staff
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => setChangeSupervisorStaffId(a.staff)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.75rem',
+                          padding: '0.75rem', borderRadius: 'var(--radius-sm)',
+                          border: `1.5px solid ${selected ? 'var(--color-orange)' : 'var(--color-gray-mid)'}`,
+                          background: selected ? 'rgba(232,69,10,0.05)' : 'white',
+                          cursor: 'pointer', textAlign: 'left', width: '100%',
+                          transition: 'border-color 0.15s, background 0.15s',
+                        }}
+                      >
+                        <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '50%', background: selected ? 'var(--color-orange)' : 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.8rem', flexShrink: 0, transition: 'background 0.15s' }}>
+                          {selected ? <i className="fa-solid fa-check" style={{ fontSize: '0.75rem' }} /> : a.staff_name?.[0]}
+                        </div>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-navy)', flex: 1 }}>{a.staff_name}</span>
+                        {selected && <i className="fa-solid fa-circle-check" style={{ color: 'var(--color-orange)', fontSize: '1rem' }} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Modal>
+            )
+          })()}
         </div>
       )}
 
@@ -669,7 +764,7 @@ export default function JobDetailPage() {
               </thead>
               <tbody>
                 {job.assignments.map(a => {
-                  const absentRecord = attendance.find(x => x.staff === a.staff.id)
+                  const absentRecord = attendance.find(x => x.staff === a.staff)
                   return (
                     <tr key={a.id}>
                       <td style={{ fontWeight: 600 }}>{a.staff_name}</td>
@@ -690,7 +785,7 @@ export default function JobDetailPage() {
                       <td style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{absentRecord?.notes || '—'}</td>
                       <td>
                         {!absentRecord && (
-                          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => handleMarkAbsent(a.staff.id)}>
+                          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => handleMarkAbsent(a.staff)}>
                             <i className="fa-solid fa-user-xmark" />Mark Absent
                           </button>
                         )}

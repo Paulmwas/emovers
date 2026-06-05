@@ -52,13 +52,7 @@ export interface Truck {
 
 export interface JobAssignment {
   id: number
-  staff: {
-    id: number
-    first_name: string
-    last_name: string
-    email: string
-    phone?: string
-  }
+  staff: number
   staff_name?: string
   staff_email?: string
   staff_phone?: string

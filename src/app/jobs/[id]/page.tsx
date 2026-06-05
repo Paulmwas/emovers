@@ -61,7 +61,7 @@ export default function JobDetailPage() {
     try {
       const res = await usersApi.availableStaff();
       setAvailableStaff(toArray<User>(res.data));
-      setSelectedStaff(job?.assignments?.map((a) => a.staff.id) || []);
+      setSelectedStaff(job?.assignments?.map((a) => a.staff) || []);
       setAssignStaffOpen(true);
     } catch { toast.error("Failed to load available staff"); }
   };
@@ -273,12 +273,12 @@ export default function JobDetailPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-700 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">
-                          {a.staff.first_name?.[0]}{a.staff.last_name?.[0]}
+                          {a.staff_name?.[0]}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{a.staff.first_name} {a.staff.last_name}</p>
-                        <p className="text-xs text-gray-500">{a.staff.email}</p>
+                        <p className="text-sm font-semibold text-gray-900">{a.staff_name}</p>
+                        <p className="text-xs text-gray-500">{a.staff_email}</p>
                       </div>
                     </div>
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
