@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Navbar } from '@/components/layout/Navbar'
+import { publicJobService } from '@/lib/services'
 
 // ─── Animated counter hook ───────────────────────────────────────────
 function useCountUp(target: number, duration = 2000, inView: boolean) {
@@ -69,13 +70,13 @@ const STEPS = [
 
 const TESTIMONIALS = [
   {
-    quote: 'Smart-Movers handled my office relocation seamlessly. Professional team, zero damage, on-time delivery. Highly recommended!',
+    quote: 'Smartmovers handled my office relocation seamlessly. Professional team, zero damage, on-time delivery. Highly recommended!',
     name: 'James Mwangi',
     role: 'Operations Director',
     rating: 5,
   },
   {
-    quote: 'The staff were incredibly careful with my antiques. The PIN attendance system gave me real-time visibility of the team.',
+    quote: 'The staff were incredibly careful with my antiques. Great communication, transparent pricing — every item arrived safely.',
     name: 'Sarah Odhiambo',
     role: 'Homeowner',
     rating: 5,
@@ -91,16 +92,31 @@ const TESTIMONIALS = [
 const BLOG_POSTS = [
   { cat: 'Tips', title: '10 Packing Tips for a Stress-Free Move', img: 'fa-box-open' },
   { cat: 'Guide', title: 'How to Choose the Right Moving Company', img: 'fa-truck-moving' },
-  { cat: 'News', title: 'Smart-Movers Expands to 5 New Cities in 2025', img: 'fa-city' },
+  { cat: 'News', title: 'Smartmovers Expands to 5 New Cities in 2025', img: 'fa-city' },
 ]
 
 const PARTNERS = ['Proline', 'Penta', 'Waveless', 'Automation', 'Vision']
 
-const MOVE_SIZES = ['Studio', 'One Bedroom', 'Two Bedroom', 'Three Bedroom', 'Office (Small)', 'Office (Large)']
 
 export default function LandingPage() {
   const [serviceTab, setServiceTab] = useState('moving')
   const [testimonialIdx, setTestimonialIdx] = useState(0)
+  const [quoteLoading, setQuoteLoading] = useState(false)
+
+  const handleGetQuote = async () => {
+    setQuoteLoading(true)
+    try {
+      const blob = await publicJobService.getQuote()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'smartmovers_pricing.pdf'
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // silently ignore — user sees no change if download fails
+    } finally { setQuoteLoading(false) }
+  }
 
   const visibleServices = ALL_SERVICES.filter(s => s.category === serviceTab)
 
@@ -156,41 +172,32 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Search bar */}
+          {/* Price guide download */}
           <div className="animate-fadeUp anim-d5" style={{
             marginTop: '3rem',
             background: 'rgba(255,255,255,0.1)',
             backdropFilter: 'blur(8px)',
             borderRadius: '1rem',
-            padding: '1.25rem',
+            padding: '1.25rem 1.5rem',
             border: '1px solid rgba(255,255,255,0.15)',
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr 1fr auto',
-            gap: '0.75rem',
-            alignItems: 'end',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1.5rem',
+            flexWrap: 'wrap',
           }}>
             <div>
-              <label className="form-label" style={{ color: 'rgba(255,255,255,0.7)' }}>From</label>
-              <input className="form-input" placeholder="Pickup location" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: 'white' }} />
+              <div style={{ color: 'white', fontWeight: 700, fontSize: '1rem', marginBottom: '0.25rem' }}>
+                <i className="fa-solid fa-file-pdf" style={{ color: 'var(--color-yellow)', marginRight: '0.5rem' }} />
+                Smartmovers Price Guide
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)' }}>
+                Full pricing for all move sizes &amp; distances — no login required
+              </div>
             </div>
-            <div>
-              <label className="form-label" style={{ color: 'rgba(255,255,255,0.7)' }}>To</label>
-              <input className="form-input" placeholder="Drop-off location" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: 'white' }} />
-            </div>
-            <div>
-              <label className="form-label" style={{ color: 'rgba(255,255,255,0.7)' }}>Date</label>
-              <input type="date" className="form-input" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: 'white' }} />
-            </div>
-            <div>
-              <label className="form-label" style={{ color: 'rgba(255,255,255,0.7)' }}>Move Size</label>
-              <select className="form-select" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: 'white' }}>
-                <option value="">Select size</option>
-                {MOVE_SIZES.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <button className="btn btn-yellow btn-lg" style={{ whiteSpace: 'nowrap' }}>
-              <i className="fa-solid fa-magnifying-glass" />
-              Get a Quote
+            <button className="btn btn-yellow btn-lg" style={{ whiteSpace: 'nowrap' }} onClick={handleGetQuote} disabled={quoteLoading}>
+              {quoteLoading ? <span className="spinner spinner-sm" style={{ borderColor: 'rgba(0,0,0,0.2)', borderTopColor: '#000' }} /> : <i className="fa-solid fa-download" />}
+              Download PDF
             </button>
           </div>
         </div>

@@ -70,7 +70,7 @@ export default function JobDetailPage() {
     try {
       const res = await fleetApi.available();
       setAvailableTrucks(toArray<Truck>(res.data));
-      setSelectedTrucks(job?.job_trucks?.map((t) => t.truck.id) || []);
+      setSelectedTrucks(job?.job_trucks?.map((t) => typeof t.truck === 'number' ? t.truck : (t.truck as any).id) || []);
       setAssignTrucksOpen(true);
     } catch { toast.error("Failed to load available trucks"); }
   };
@@ -319,11 +319,11 @@ export default function JobDetailPage() {
                         <TruckIcon size={14} className="text-amber-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{jt.truck.plate_number}</p>
-                        <p className="text-xs text-gray-500">{jt.truck.make} {jt.truck.model} · {jt.truck.truck_type}</p>
+                        <p className="text-sm font-semibold text-gray-900">{jt.plate_number || `Truck #${jt.truck}`}</p>
+                        <p className="text-xs text-gray-500">{jt.make} {jt.model}{jt.truck_type ? ` · ${jt.truck_type}` : ''}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-500">{jt.truck.capacity_tons} tons</span>
+                    <span className="text-xs text-gray-500">{jt.capacity_tons ? `${jt.capacity_tons} tons` : ''}</span>
                   </div>
                 ))}
               </div>
@@ -446,10 +446,8 @@ export default function JobDetailPage() {
                   <p className="text-sm font-semibold text-gray-900">{s.first_name} {s.last_name}</p>
                   <p className="text-xs text-gray-500">{s.email}</p>
                 </div>
-                {s.staff_profile && (
-                  <span className="text-xs text-amber-600 font-semibold">
-                    ★ {parseFloat(String(s.staff_profile.average_rating)).toFixed(1)}
-                  </span>
+                {s.staff_profile?.is_available && (
+                  <span className="text-xs text-green-600 font-semibold">Available</span>
                 )}
               </label>
             ))

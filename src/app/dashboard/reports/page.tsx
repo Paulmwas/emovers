@@ -17,6 +17,7 @@ const RANGES = [
   { value: 30, label: '30 Days' },
   { value: 90, label: '90 Days' },
   { value: 365, label: '1 Year' },
+  { value: 0, label: 'All Time' },
 ]
 
 const TABS = [
@@ -96,7 +97,7 @@ function DashboardTab({ days }: { days: number }) {
 
   useEffect(() => {
     setLoading(true)
-    reportService.dashboard({ days })
+    reportService.dashboard(days === 0 ? { all: true } : { days })
       .then(setData)
       .catch(() => toast.error('Load Error', 'Failed to load dashboard report.'))
       .finally(() => setLoading(false))
@@ -155,7 +156,7 @@ function JobsTab({ days }: { days: number }) {
 
   useEffect(() => {
     setLoading(true)
-    reportService.jobs({ days })
+    reportService.jobs(days === 0 ? { all: true } : { days })
       .then(setData)
       .catch(() => toast.error('Load Error', 'Failed to load jobs report.'))
       .finally(() => setLoading(false))
@@ -208,7 +209,7 @@ function BillingTab({ days }: { days: number }) {
 
   useEffect(() => {
     setLoading(true)
-    reportService.billing({ days })
+    reportService.billing(days === 0 ? { all: true } : { days })
       .then(setData)
       .catch(() => toast.error('Load Error', 'Failed to load billing report.'))
       .finally(() => setLoading(false))
@@ -219,16 +220,17 @@ function BillingTab({ days }: { days: number }) {
 
   const statusEntries = data.by_status ? Object.entries(data.by_status as Record<string, number>) : []
   const maxStatus = statusEntries.length ? Math.max(...statusEntries.map(([, v]) => v), 1) : 1
-  const collectionRate = data.total_invoiced && data.total_invoiced > 0
-    ? (data.total_collected / data.total_invoiced) * 100
-    : 0
+  const totalInvoiced = data.total_invoiced ?? data.revenue_totals?.total_invoiced ?? 0
+  const totalCollected = data.total_collected ?? data.revenue_totals?.total_collected ?? 0
+  const collectionRate = totalInvoiced > 0 ? (totalCollected / totalInvoiced) * 100 : 0
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }}>
-        <StatsCard icon="fa-file-invoice" value={`KES ${(data.total_invoiced ?? 0).toLocaleString()}`} label="Total Invoiced" iconBg="rgba(59,130,246,0.1)" iconColor="var(--color-info)" />
-        <StatsCard icon="fa-circle-check" value={`KES ${(data.total_collected ?? 0).toLocaleString()}`} label="Collected" iconBg="rgba(34,197,94,0.1)" iconColor="var(--color-success)" />
-        <StatsCard icon="fa-clock" value={`KES ${(data.total_outstanding ?? 0).toLocaleString()}`} label="Outstanding" iconBg="rgba(245,158,11,0.1)" iconColor="var(--color-warning)" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1.25rem' }}>
+        <StatsCard icon="fa-file-invoice" value={`KES ${(data.total_invoiced ?? data.revenue_totals?.total_invoiced ?? 0).toLocaleString()}`} label="Total Invoiced" iconBg="rgba(59,130,246,0.1)" iconColor="var(--color-info)" />
+        <StatsCard icon="fa-circle-check" value={`KES ${(data.total_collected ?? data.revenue_totals?.total_collected ?? 0).toLocaleString()}`} label="Collected" iconBg="rgba(34,197,94,0.1)" iconColor="var(--color-success)" />
+        <StatsCard icon="fa-clock" value={`KES ${(data.total_outstanding ?? data.revenue_totals?.total_outstanding ?? 0).toLocaleString()}`} label="Outstanding" iconBg="rgba(245,158,11,0.1)" iconColor="var(--color-warning)" />
+        <StatsCard icon="fa-building" value={`KES ${parseFloat(String(data.total_company_profit ?? data.revenue_totals?.total_company_profit ?? 0)).toLocaleString()}`} label="Company Profit" iconBg="rgba(99,102,241,0.1)" iconColor="#6366f1" />
         <StatsCard icon="fa-circle-xmark" value={data.unpaid_count ?? 0} label="Unpaid Invoices" iconBg="rgba(239,68,68,0.1)" iconColor="var(--color-danger)" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -240,7 +242,7 @@ function BillingTab({ days }: { days: number }) {
           <div className="card-title" style={{ alignSelf: 'flex-start' }}>Collection Rate</div>
           <CircleRing pct={collectionRate} label="of invoiced amount collected" color="var(--color-success)" />
           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-            KES {(data.total_collected ?? 0).toLocaleString()} of KES {(data.total_invoiced ?? 0).toLocaleString()}
+            KES {totalCollected.toLocaleString()} of KES {totalInvoiced.toLocaleString()}
           </div>
         </div>
       </div>
@@ -255,7 +257,7 @@ function StaffTab({ days }: { days: number }) {
 
   useEffect(() => {
     setLoading(true)
-    reportService.staffPerformance({ days })
+    reportService.staffPerformance(days === 0 ? { all: true } : { days })
       .then(setData)
       .catch(() => toast.error('Load Error', 'Failed to load staff report.'))
       .finally(() => setLoading(false))
@@ -333,7 +335,7 @@ function FleetTab({ days }: { days: number }) {
 
   useEffect(() => {
     setLoading(true)
-    reportService.fleet({ days })
+    reportService.fleet(days === 0 ? { all: true } : { days })
       .then(setData)
       .catch(() => toast.error('Load Error', 'Failed to load fleet report.'))
       .finally(() => setLoading(false))
@@ -394,7 +396,7 @@ function AttendanceTab({ days }: { days: number }) {
 
   useEffect(() => {
     setLoading(true)
-    reportService.attendance({ days })
+    reportService.attendance(days === 0 ? { all: true } : { days })
       .then(setData)
       .catch(() => toast.error('Load Error', 'Failed to load attendance report.'))
       .finally(() => setLoading(false))
@@ -456,7 +458,7 @@ function ApplicationsTab({ days }: { days: number }) {
 
   useEffect(() => {
     setLoading(true)
-    reportService.applications({ days })
+    reportService.applications(days === 0 ? { all: true } : { days })
       .then(setData)
       .catch(() => toast.error('Load Error', 'Failed to load applications report.'))
       .finally(() => setLoading(false))

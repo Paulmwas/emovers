@@ -12,7 +12,6 @@ import { ConfirmModal, Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Job, JobApplication, AttendanceRecord, Invoice, StaffReview } from '@/types'
 
-// ── Helpers ──────────────────────────────────────────────────────────
 function StarDisplay({ rating }: { rating: number }) {
   return (
     <span className="star-rating">
@@ -20,19 +19,6 @@ function StarDisplay({ rating }: { rating: number }) {
         <i key={s} className={`fa-solid fa-star${s > rating ? ' star-empty' : ''}`} />
       ))}
     </span>
-  )
-}
-
-function ScoreBar({ score }: { score: number }) {
-  const pct = Math.round(score * 100)
-  const cls = score < 0.5 ? 'low' : score < 0.75 ? 'mid' : 'high'
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-      <div className="score-bar-track" style={{ width: '80px' }}>
-        <div className={`score-bar-fill ${cls}`} style={{ width: `${pct}%` }} />
-      </div>
-      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{pct}%</span>
-    </div>
   )
 }
 
@@ -92,10 +78,7 @@ function ApproveModal({ open, onClose, applications, onApprove }: {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-navy)' }}>{app.staff_name}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: '0.75rem', marginTop: '0.125rem' }}>
-                <StarDisplay rating={Math.round(app.average_rating)} />
-                <ScoreBar score={app.recommendation_score} />
-              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>{app.staff_email}</div>
             </div>
             {approved.has(app.staff) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={e => e.stopPropagation()}>
@@ -281,6 +264,9 @@ export default function JobDetailPage() {
   const [showDisburse, setShowDisburse] = useState(false)
   const [showCancel, setShowCancel] = useState(false)
   const [cancelLoading, setCancelLoading] = useState(false)
+  const [showChangeSupervisor, setShowChangeSupervisor] = useState(false)
+  const [changeSupervisorStaffId, setChangeSupervisorStaffId] = useState<number | null>(null)
+  const [changeSupervisorLoading, setChangeSupervisorLoading] = useState(false)
   const [refresh, setRefresh] = useState(0)
 
   useEffect(() => {
@@ -386,6 +372,20 @@ export default function JobDetailPage() {
     setShowApprove(false)
     setTab('team')
     setRefresh(r => r + 1)
+  }
+
+  const handleChangeSupervisor = async () => {
+    if (!job || !changeSupervisorStaffId) return
+    setChangeSupervisorLoading(true)
+    try {
+      await jobService.changeSupervisor(job.id, changeSupervisorStaffId)
+      toast.success('Team Lead Updated', 'The supervisor has been changed.')
+      setShowChangeSupervisor(false)
+      setChangeSupervisorStaffId(null)
+      setRefresh(r => r + 1)
+    } catch (err: any) {
+      toast.error('Failed', err.response?.data?.error || 'Could not change supervisor.')
+    } finally { setChangeSupervisorLoading(false) }
   }
 
   const fmt = (v: string | number) => `KES ${parseFloat(String(v)).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
@@ -550,8 +550,7 @@ export default function JobDetailPage() {
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 700, color: 'var(--color-navy)' }}>{app.staff_name}</div>
                           <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: '1rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                            <span><StarDisplay rating={Math.round(app.average_rating)} /></span>
-                            <ScoreBar score={app.recommendation_score} />
+                            <span>{app.staff_email}</span>
                             <span>Applied {new Date(app.applied_at).toLocaleDateString('en-KE')}</span>
                           </div>
                         </div>
@@ -570,10 +569,17 @@ export default function JobDetailPage() {
       {/* ── TEAM TAB ── */}
       {tab === 'team' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-            <button className="btn btn-outline btn-sm" onClick={handleDownloadPdf}>
-              <i className="fa-solid fa-file-pdf" />Download Team PDF
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            {isAdmin && ['assigned', 'in_progress'].includes(job.status) && job.assignments.some(a => a.role === 'mover') && (
+              <button className="btn btn-outline btn-sm" onClick={() => setShowChangeSupervisor(true)}>
+                <i className="fa-solid fa-crown" />Change Team Lead
+              </button>
+            )}
+            <div style={{ marginLeft: 'auto' }}>
+              <button className="btn btn-outline btn-sm" onClick={handleDownloadPdf}>
+                <i className="fa-solid fa-file-pdf" />Download Team PDF
+              </button>
+            </div>
           </div>
           {job.assignments.length === 0 ? (
             <EmptyState icon="fa-users" title="No Team Assigned" />
@@ -595,6 +601,57 @@ export default function JobDetailPage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Truck assignments */}
+          {job.job_trucks && job.job_trucks.length > 0 && (
+            <div style={{ marginTop: '1.5rem' }}>
+              <div className="card-title" style={{ marginBottom: '0.75rem' }}>Assigned Trucks</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+                {job.job_trucks.map(t => (
+                  <div key={t.id} className="card" style={{ padding: '1rem 1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--color-navy)', fontSize: '0.9rem' }}>{t.plate_number || `Truck #${t.truck}`}</div>
+                      {t.allocation_method && (
+                        <span style={{ fontSize: '0.7rem', padding: '0.125rem 0.5rem', borderRadius: '999px', background: t.allocation_method === 'auto' ? 'rgba(59,130,246,0.1)' : 'rgba(34,197,94,0.1)', color: t.allocation_method === 'auto' ? 'var(--color-info)' : 'var(--color-success)', fontWeight: 600 }}>
+                          {t.allocation_method_display || t.allocation_method}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      {t.make} {t.model} · {t.truck_type} · {t.capacity_tons}t
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Change supervisor modal */}
+          {showChangeSupervisor && (
+            <Modal open={showChangeSupervisor} onClose={() => { setShowChangeSupervisor(false); setChangeSupervisorStaffId(null) }} title="Change Team Lead" size="sm"
+              footer={<>
+                <button className="btn btn-ghost" onClick={() => { setShowChangeSupervisor(false); setChangeSupervisorStaffId(null) }} disabled={changeSupervisorLoading}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleChangeSupervisor} disabled={changeSupervisorLoading || !changeSupervisorStaffId}>
+                  {changeSupervisorLoading && <span className="spinner spinner-sm" />}Confirm
+                </button>
+              </>}
+            >
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+                Select a mover to promote to Team Lead. The current supervisor will become a mover.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {job.assignments.filter(a => a.role === 'mover').map(a => (
+                  <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: `1.5px solid ${changeSupervisorStaffId === a.staff.id ? 'var(--color-orange)' : 'var(--color-gray-mid)'}`, cursor: 'pointer', background: changeSupervisorStaffId === a.staff.id ? 'rgba(232,69,10,0.04)' : 'white' }}>
+                    <input type="radio" name="new-supervisor" checked={changeSupervisorStaffId === a.staff.id} onChange={() => setChangeSupervisorStaffId(a.staff.id)} style={{ accentColor: 'var(--color-orange)' }} />
+                    <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>
+                      {a.staff_name?.[0]}
+                    </div>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-navy)' }}>{a.staff_name}</span>
+                  </label>
+                ))}
+              </div>
+            </Modal>
           )}
         </div>
       )}
@@ -681,28 +738,42 @@ export default function JobDetailPage() {
                 </div>
                 <table className="invoice-line-table" style={{ marginBottom: '0.5rem' }}>
                   <tbody>
-                    {[
-                      ['Base Charge', invoice.base_charge],
-                      ['Distance Charge', invoice.distance_charge],
-                      ['Staff Charge', invoice.staff_charge],
-                      ['Truck Charge', invoice.truck_charge],
-                    ].map(([l, v]) => (
-                      <tr key={l}>
-                        <td style={{ color: 'var(--color-text-body)' }}>{l}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(v)}</td>
+                    <tr>
+                      <td style={{ color: 'var(--color-text-body)' }}>Base Charge</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(invoice.base_charge)}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ color: 'var(--color-text-body)' }}>Distance Charge</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(invoice.distance_charge)}</td>
+                    </tr>
+                    {parseFloat(invoice.staff_charge) > 0 && (
+                      <tr>
+                        <td style={{ color: 'var(--color-text-body)' }}>Staff Charge</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(invoice.staff_charge)}</td>
                       </tr>
-                    ))}
+                    )}
+                    {parseFloat(invoice.truck_charge) > 0 && (
+                      <tr>
+                        <td style={{ color: 'var(--color-text-body)' }}>Truck Charge</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(invoice.truck_charge)}</td>
+                      </tr>
+                    )}
                     <tr style={{ borderTop: '2px solid var(--color-gray-mid)' }}>
                       <td style={{ fontWeight: 700 }}>Subtotal</td>
                       <td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(invoice.subtotal)}</td>
                     </tr>
-                    <tr><td>VAT (16%)</td><td style={{ textAlign: 'right' }}>{fmt(invoice.tax_amount)}</td></tr>
+                    {parseFloat(invoice.tax_amount) > 0 && (
+                      <tr><td>VAT (16%)</td><td style={{ textAlign: 'right' }}>{fmt(invoice.tax_amount)}</td></tr>
+                    )}
                     <tr style={{ background: 'var(--color-navy)', color: 'white' }}>
                       <td style={{ padding: '0.75rem', fontWeight: 800, fontFamily: 'var(--font-display)', textTransform: 'uppercase' }}>Total</td>
                       <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 800, fontSize: '1.125rem' }}>{fmt(invoice.total_amount)}</td>
                     </tr>
                     <tr><td style={{ color: 'var(--color-success)' }}>Amount Paid</td><td style={{ textAlign: 'right', color: 'var(--color-success)', fontWeight: 600 }}>({fmt(invoice.amount_paid)})</td></tr>
                     <tr><td style={{ fontWeight: 700 }}>Balance Due</td><td style={{ textAlign: 'right', fontWeight: 700, color: parseFloat(invoice.balance_due) > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>{fmt(invoice.balance_due)}</td></tr>
+                    {invoice.company_profit && (
+                      <tr><td style={{ color: 'var(--color-text-muted)' }}>Company Profit</td><td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-navy)' }}>{fmt(invoice.company_profit)}</td></tr>
+                    )}
                   </tbody>
                 </table>
 
@@ -812,7 +883,7 @@ export default function JobDetailPage() {
         onClose={() => setShowDisburse(false)}
         onConfirm={handleDisburse}
         title="Disburse Payments"
-        message="This will disburse staff payments for this job. This action is irreversible."
+        message={<>Each assigned staff member will receive a flat <strong>KES 500</strong>. The remainder is recorded as company profit. This action is irreversible.</>}
         confirmLabel="Disburse"
         loading={false}
       />

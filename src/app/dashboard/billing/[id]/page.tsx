@@ -182,17 +182,30 @@ export default function InvoiceDetailPage() {
             <table className="data-table">
               <thead><tr><th>Item</th><th style={{ textAlign: 'right' }}>Amount</th></tr></thead>
               <tbody>
-                {[['Base Charge', invoice.base_charge], ['Distance Charge', invoice.distance_charge], ['Staff Charge', invoice.staff_charge], ['Truck Charge', invoice.truck_charge]].map(([l, v]) => (
-                  <tr key={l}><td>{l}</td><td style={{ textAlign: 'right' }}>{fmt(v)}</td></tr>
-                ))}
+                <tr><td>Base Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.base_charge)}</td></tr>
+                <tr><td>Distance Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.distance_charge)}</td></tr>
+                {parseFloat(invoice.staff_charge) > 0 && (
+                  <tr><td>Staff Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.staff_charge)}</td></tr>
+                )}
+                {parseFloat(invoice.truck_charge) > 0 && (
+                  <tr><td>Truck Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.truck_charge)}</td></tr>
+                )}
                 <tr style={{ borderTop: '2px solid var(--color-gray-mid)', background: 'var(--color-gray-light)' }}>
                   <td style={{ fontWeight: 700 }}>Subtotal</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(invoice.subtotal)}</td>
                 </tr>
-                <tr><td>VAT (16%)</td><td style={{ textAlign: 'right' }}>{fmt(invoice.tax_amount)}</td></tr>
+                {parseFloat(invoice.tax_amount) > 0 && (
+                  <tr><td>VAT (16%)</td><td style={{ textAlign: 'right' }}>{fmt(invoice.tax_amount)}</td></tr>
+                )}
                 <tr style={{ background: 'var(--color-navy)', color: 'white' }}>
                   <td style={{ fontWeight: 800, fontFamily: 'var(--font-display)', textTransform: 'uppercase', fontSize: '1rem' }}>TOTAL</td>
                   <td style={{ textAlign: 'right', fontWeight: 800, fontSize: '1.125rem' }}>{fmt(invoice.total_amount)}</td>
                 </tr>
+                {invoice.company_profit && (
+                  <tr style={{ background: 'var(--color-gray-light)' }}>
+                    <td style={{ color: 'var(--color-text-muted)' }}>Company Profit</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-navy)' }}>{fmt(invoice.company_profit)}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -279,7 +292,8 @@ export default function InvoiceDetailPage() {
 
       <PaymentModal invoiceId={invoice.id} maxAmount={balanceDue} open={showPayment} onClose={() => setShowPayment(false)} onSuccess={() => setRefresh(r => r + 1)} />
       <ConfirmModal open={showDisburse} onClose={() => setShowDisburse(false)} onConfirm={handleDisburse} title="Disburse Payments"
-        message="This will disburse staff payments. This action is irreversible." confirmLabel="Disburse" loading={false} />
+        message={<>Each assigned staff member will receive a flat <strong>KES 500</strong>. The remainder is recorded as company profit. This action is irreversible.</>}
+        confirmLabel="Disburse" loading={false} />
     </div>
   )
 }

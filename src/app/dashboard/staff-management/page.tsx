@@ -94,8 +94,6 @@ function StaffProfileModal({ staff, open, onClose, onSuccess }: { staff: User; o
     finally { setNotesLoading(false) }
   }
 
-  const scoreClass = (s: number) => s < 0.5 ? 'low' : s < 0.75 ? 'mid' : 'high'
-
   return (
     <Modal open={open} onClose={onClose} title={`${staff.full_name} — Profile`} size="lg">
       {loading ? <PageLoader /> : (
@@ -110,15 +108,11 @@ function StaffProfileModal({ staff, open, onClose, onSuccess }: { staff: User; o
               </div>
             </div>
             <div>
-              <div className="form-label">Performance</div>
+              <div className="form-label">Status</div>
               <div style={{ fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--color-text-muted)' }}>Rating</span><StarDisplay rating={Math.round(parseFloat(profile?.average_rating || '0'))} /></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--color-text-muted)' }}>Reviews</span><strong>{profile?.total_reviews || 0}</strong></div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}><span style={{ color: 'var(--color-text-muted)' }}>Score</span><strong>{Math.round(parseFloat(profile?.recommendation_score || '0') * 100)}%</strong></div>
-                  <div className="score-bar-track">
-                    <div className={`score-bar-fill ${scoreClass(parseFloat(profile?.recommendation_score || '0'))}`} style={{ width: `${Math.round(parseFloat(profile?.recommendation_score || '0') * 100)}%` }} />
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Available</span>
+                  <strong style={{ color: profile?.is_available ? 'var(--color-success)' : 'var(--color-text-muted)' }}>{profile?.is_available ? 'Yes' : 'No'}</strong>
                 </div>
               </div>
             </div>
@@ -218,14 +212,11 @@ export default function StaffManagementPage() {
             <div style={{ overflowX: 'auto' }}>
               <table className="data-table">
                 <thead>
-                  <tr><th>Staff</th><th>Rating</th><th>Score</th><th>Availability</th><th>Actions</th></tr>
+                  <tr><th>Staff</th><th>Availability</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                   {staff.map(s => {
                     const profile = s.staff_profile
-                    const score = profile?.recommendation_score || '0'
-                    const pct = Math.round(parseFloat(score) * 100)
-                    const rating = Math.round(parseFloat(profile?.average_rating || '0'))
                     return (
                       <tr key={s.id}>
                         <td>
@@ -237,15 +228,6 @@ export default function StaffManagementPage() {
                               <div style={{ fontWeight: 600, color: 'var(--color-navy)', fontSize: '0.9rem' }}>{s.full_name}</div>
                               <div style={{ fontSize: '0.775rem', color: 'var(--color-text-muted)' }}>{s.email}</div>
                             </div>
-                          </div>
-                        </td>
-                        <td><span className="star-rating">{[1,2,3,4,5].map(n => <i key={n} className={`fa-solid fa-star${n > rating ? ' star-empty' : ''}`} />)}</span></td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                            <div className="score-bar-track" style={{ width: '80px' }}>
-                              <div className={`score-bar-fill ${scoreClass(score)}`} style={{ width: `${pct}%` }} />
-                            </div>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', minWidth: '2.5rem' }}>{pct}%</span>
                           </div>
                         </td>
                         <td><Badge status={profile?.is_available ? 'available' : 'on_job'} label={profile?.is_available ? 'Available' : 'On Job'} /></td>

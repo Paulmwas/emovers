@@ -55,8 +55,14 @@ export const jobService = {
   create: (data: object) => api.post('/jobs/', data).then(r => r.data),
   update: (id: number, data: object) => api.patch(`/jobs/${id}/`, data).then(r => r.data),
   delete: (id: number) => api.delete(`/jobs/${id}/`).then(r => r.data),
-  autoAllocate: (id: number, num_movers?: number, num_trucks?: number) =>
-    api.post(`/jobs/${id}/auto-allocate/`, { num_movers, num_trucks }).then(r => r.data),
+  autoAllocate: (id: number, num_movers?: number, num_trucks?: number) => {
+    const body: Record<string, number> = {}
+    if (num_movers !== undefined) body.num_movers = num_movers
+    if (num_trucks !== undefined) body.num_trucks = num_trucks
+    return api.post(`/jobs/${id}/auto-allocate/`, body).then(r => r.data)
+  },
+  changeSupervisor: (id: number, staff_id: number) =>
+    api.patch(`/jobs/${id}/change-supervisor/`, { staff_id }).then(r => r.data),
   assignStaff: (id: number, staff_ids: number[]) =>
     api.post(`/jobs/${id}/assign-staff/`, { staff_ids }).then(r => r.data),
   assignTrucks: (id: number, truck_ids: number[]) =>
@@ -129,6 +135,8 @@ export const publicJobService = {
     publicApi.post(`/jobs/${jobId}/public-apply/`, { email }).then(r => r.data),
   withdraw: (jobId: number, email: string) =>
     publicApi.delete(`/jobs/${jobId}/public-apply/`, { data: { email } }).then(r => r.data),
+  getQuote: () =>
+    publicApi.get('/billing/quote/', { responseType: 'blob' }).then(r => r.data),
 }
 
 // ─── REPORT SERVICE ──────────────────────────────────────────────────

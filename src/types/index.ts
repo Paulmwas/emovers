@@ -13,9 +13,6 @@ export interface User {
 
 export interface StaffProfile {
   is_available: boolean
-  average_rating: string
-  total_reviews: number
-  recommendation_score: string
   notes: string
   updated_at: string
 }
@@ -61,28 +58,25 @@ export interface JobAssignment {
     last_name: string
     email: string
     phone?: string
-    staff_profile?: { average_rating: string }
   }
   staff_name?: string
   staff_email?: string
   staff_phone?: string
   role: 'supervisor' | 'mover'
   role_display?: string
-  recommendation_score?: number | null
   assigned_at?: string
 }
 
 export interface JobTruck {
   id: number
-  truck: {
-    id: number
-    plate_number: string
-    make: string
-    model: string
-    truck_type: string
-    capacity_tons: string
-    status: string
-  }
+  truck: number
+  plate_number?: string
+  truck_type?: string
+  make?: string
+  model?: string
+  capacity_tons?: string
+  allocation_method?: 'auto' | 'manual'
+  allocation_method_display?: string
   assigned_at?: string
 }
 
@@ -169,6 +163,7 @@ export interface Invoice {
   payment_status_display?: string
   due_date: string | null
   notes?: string
+  company_profit?: string
   payments: Payment[]
   created_at: string
   updated_at?: string

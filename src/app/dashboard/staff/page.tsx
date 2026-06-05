@@ -69,18 +69,13 @@ export default function StaffDashboard() {
   const appliedIds = new Set(myApplications.filter(a => a.status === 'applied').map(a => a.job))
   const approvedApps = myApplications.filter(a => a.status === 'approved')
 
-  const profile = user?.staff_profile
-  const rating = parseFloat(profile?.average_rating || '0')
-  const recScore = parseFloat(profile?.recommendation_score || '0')
-
   return (
     <div>
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
         <StatsCard icon="fa-paper-plane" value={myApplications.filter(a => a.status === 'applied').length} label="Active Applications" iconBg="rgba(59,130,246,0.1)" iconColor="var(--color-info)" />
         <StatsCard icon="fa-circle-check" value={approvedApps.length} label="Approved Jobs" iconBg="rgba(34,197,94,0.1)" iconColor="var(--color-success)" />
-        <StatsCard icon="fa-star" value={rating > 0 ? rating.toFixed(1) : 'N/A'} label="My Rating" iconBg="rgba(245,158,11,0.1)" iconColor="var(--color-warning)" />
-        <StatsCard icon="fa-gauge-high" value={recScore > 0 ? `${Math.round(recScore * 100)}%` : 'N/A'} label="Recommendation Score" iconBg="rgba(232,69,10,0.1)" iconColor="var(--color-orange)" />
+        <StatsCard icon="fa-circle-xmark" value={myApplications.filter(a => a.status === 'rejected').length} label="Rejected" iconBg="rgba(239,68,68,0.1)" iconColor="var(--color-danger)" />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>

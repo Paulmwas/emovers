@@ -14,7 +14,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import type { Job, Customer } from '@/types'
 
 const STATUSES = ['pending', 'assigned', 'in_progress', 'completed', 'cancelled']
-const MOVE_SIZES = [['studio', 'Studio'], ['one_bedroom', '1 Bed'], ['two_bedroom', '2 Bed'], ['three_bedroom', '3 Bed'], ['office_small', 'Sm. Office'], ['office_large', 'Lg. Office']]
+const MOVE_SIZES = [['studio', 'Studio'], ['one_bedroom', '1 Bed'], ['two_bedroom', '2 Bed'], ['three_bedroom', '3 Bed'], ['four_bedroom', '4 Bed'], ['five_bedroom', '5 Bed'], ['six_bedroom', '6 Bed'], ['office_small', 'Sm. Office'], ['office_large', 'Lg. Office']]
 
 const EMPTY_FORM = {
   title: '',
