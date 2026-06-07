@@ -279,12 +279,17 @@ export default function JobDetailPage() {
       attendanceService.list(jobId).catch(() => []),
       billingService.listInvoices({ job: jobId }).catch(() => ({ results: [] })),
       reviewService.jobReviews(jobId).catch(() => []),
-    ]).then(([j, apps, att, inv, revs]) => {
+    ]).then(async ([j, apps, att, inv, revs]) => {
       setJob(j)
       setApplications(isAdmin ? (apps.results || apps) : [])
       setAttendance(att.results || att)
       const invList = inv.results || inv
-      setInvoice(invList.length > 0 ? invList[0] : null)
+      if (invList.length > 0) {
+        const full = await billingService.getInvoice(invList[0].id).catch(() => invList[0])
+        setInvoice(full)
+      } else {
+        setInvoice(null)
+      }
       setReviews(revs.results || revs)
     }).catch(() => toast.error('Load Error', 'Failed to load job details.'))
       .finally(() => setLoading(false))
@@ -388,7 +393,10 @@ export default function JobDetailPage() {
     } finally { setChangeSupervisorLoading(false) }
   }
 
-  const fmt = (v: string | number) => `KES ${parseFloat(String(v)).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
+  const fmt = (v: string | number | undefined | null) => {
+    const n = parseFloat(String(v ?? 0))
+    return `KES ${(isNaN(n) ? 0 : n).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
+  }
 
   const isSupervisor = job?.assignments.some(a => a.staff === user?.id && a.role === 'supervisor')
 

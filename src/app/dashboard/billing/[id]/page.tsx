@@ -169,6 +169,11 @@ export default function InvoiceDetailPage() {
               <div>
                 <div className="form-label">Invoice Details</div>
                 <div style={{ fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  {invoice.move_size_display && (
+                    <div style={{ fontWeight: 700, color: 'var(--color-navy)', fontSize: '1rem', marginBottom: '0.25rem' }}>
+                      <i className="fa-solid fa-house" style={{ marginRight: '0.375rem', opacity: 0.7 }} />{invoice.move_size_display}
+                    </div>
+                  )}
                   <div><span style={{ color: 'var(--color-text-muted)' }}>Created: </span>{new Date(invoice.created_at).toLocaleDateString('en-KE')}</div>
                   {invoice.due_date && <div><span style={{ color: 'var(--color-text-muted)' }}>Due: </span>{invoice.due_date}</div>}
                 </div>
@@ -184,12 +189,6 @@ export default function InvoiceDetailPage() {
               <tbody>
                 <tr><td>Base Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.base_charge)}</td></tr>
                 <tr><td>Distance Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.distance_charge)}</td></tr>
-                {parseFloat(invoice.staff_charge) > 0 && (
-                  <tr><td>Staff Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.staff_charge)}</td></tr>
-                )}
-                {parseFloat(invoice.truck_charge) > 0 && (
-                  <tr><td>Truck Charge</td><td style={{ textAlign: 'right' }}>{fmt(invoice.truck_charge)}</td></tr>
-                )}
                 <tr style={{ borderTop: '2px solid var(--color-gray-mid)', background: 'var(--color-gray-light)' }}>
                   <td style={{ fontWeight: 700 }}>Subtotal</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(invoice.subtotal)}</td>
                 </tr>
@@ -208,6 +207,11 @@ export default function InvoiceDetailPage() {
                 )}
               </tbody>
             </table>
+            {/* Operational breakdown — informational only, not part of customer total */}
+            <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid var(--color-gray-mid)', background: 'var(--color-gray-light)', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+              <span style={{ fontWeight: 600, marginRight: '0.5rem' }}>Operational Breakdown:</span>
+              Staff payout: {fmt(invoice.staff_charge)} · Truck cost: {fmt(invoice.truck_charge)}
+            </div>
           </div>
 
           {/* Payment history */}

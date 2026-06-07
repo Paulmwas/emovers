@@ -142,6 +142,8 @@ export interface Invoice {
   // Flat fields used by legacy dashboard pages
   job_title?: string
   customer_name?: string
+  move_size?: string
+  move_size_display?: string
   base_charge: string
   distance_charge: string
   staff_charge: string

@@ -11,27 +11,33 @@ import type { Notification } from '@/types'
 
 const TYPE_ICON: Record<string, string> = {
   job_assigned: 'fa-briefcase',
+  job_allocated: 'fa-wand-magic-sparkles',
   job_cancelled: 'fa-circle-xmark',
   job_completed: 'fa-circle-check',
   application_approved: 'fa-thumbs-up',
   application_rejected: 'fa-thumbs-down',
   attendance_required: 'fa-calendar-check',
   payment_recorded: 'fa-money-bill',
+  payment_disbursed: 'fa-money-bill-transfer',
   disbursement: 'fa-money-bill-transfer',
   review_received: 'fa-star',
+  review_pending: 'fa-clipboard-list',
   general: 'fa-bell',
 }
 
 const TYPE_COLOR: Record<string, string> = {
   job_assigned: 'var(--color-info)',
+  job_allocated: 'var(--color-info)',
   job_cancelled: 'var(--color-danger)',
   job_completed: 'var(--color-success)',
   application_approved: 'var(--color-success)',
   application_rejected: 'var(--color-danger)',
   attendance_required: 'var(--color-warning)',
   payment_recorded: 'var(--color-success)',
+  payment_disbursed: 'var(--color-success)',
   disbursement: 'var(--color-success)',
   review_received: 'var(--color-warning)',
+  review_pending: 'var(--color-warning)',
   general: 'var(--color-navy)',
 }
 
